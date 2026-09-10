@@ -276,18 +276,27 @@ with tab_liquidez:
             (df_ratio_liq['Fecha'] == ult_fecha_liq) & 
             (df_ratio_liq['Moneda'] == moneda_liq_sel) & 
             (df_ratio_liq['Banco'] != 'Sistema')
-        ].sort_values(by='Ratio_ByM_PCPL_%', ascending=False)
+        ].copy()
         
-        # Se activa la escala de color visible al lado derecho
+        # 1. Forzar tipo de dato numérico continuo para evitar interpretación de texto/categoría
+        df_bar_bym['Ratio_ByM_PCPL_%'] = pd.to_numeric(df_bar_bym['Ratio_ByM_PCPL_%'], errors='coerce').fillna(0)
+        df_bar_bym = df_bar_bym.sort_values(by='Ratio_ByM_PCPL_%', ascending=False)
+        
+        # 2. Construcción explícita de escala continua
         fig_b_bym = px.bar(
-            df_bar_bym, x='Banco', y='Ratio_ByM_PCPL_%',
+            df_bar_bym, 
+            x='Banco', 
+            y='Ratio_ByM_PCPL_%',
             color='Ratio_ByM_PCPL_%', 
             color_continuous_scale='Viridis', 
             labels={'Ratio_ByM_PCPL_%': 'Ratio_ByM_PCPL_%'},
             text_auto='.2f'
         )
+        
+        # 3. Asegurar que la barra de color continua esté habilitada explícitamente
         fig_b_bym.update_layout(
-            xaxis_type='category'
+            xaxis_type='category',
+            coloraxis_showscale=True
         )
         st.plotly_chart(fig_b_bym, use_container_width=True)
 
